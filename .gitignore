@@ -1,0 +1,5 @@
+# JetBrains's folder.
+.idea
+
+# Folders for experiments.
+**/sandbox
