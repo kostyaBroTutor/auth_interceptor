@@ -3,3 +3,6 @@
 
 # Folders for experiments.
 **/sandbox
+
+# Golang vendoring.
+vendor/
