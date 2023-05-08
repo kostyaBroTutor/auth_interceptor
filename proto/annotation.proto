@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package auth.proto;
+package proto;
 
 option go_package = "./proto;proto";
 
@@ -15,10 +15,10 @@ message MethodAuthOptions {
   bool authenticated = 1;
   // required_permission is the list of permissions that the user must have to
   // access the method.
-  repeated Permission required_permission = 2;
+  repeated Permission required_permissions = 2;
   // required_role is the list of roles.
   // User must have at least one of the roles to access the method.
-  repeated Role required_role = 3;
+  repeated Role required_roles = 3;
 }
 
 enum Role {
