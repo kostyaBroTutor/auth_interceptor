@@ -18,6 +18,8 @@ import (
 	"github.com/kostyaBroTutor/auth_interceptor/proto"
 )
 
+//go:generate mockery --name=AuthClient
+
 type AuthClient interface {
 	Auth(ctx context.Context, token string) (*TokenInfo, error)
 }
