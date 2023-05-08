@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package interceptor.test;
+
+option go_package = "interceptor/testing;testing";
+
+import "proto/annotation.proto";
+
+// TestService with method with different auth options.
+service TestService {
+  rpc TestAuthenticatedMethodWithPermissionsOnly(TestMessage) returns (TestMessage) {
+    option (proto.options) = {
+      authenticated: true
+      required_permissions: [
+        READ_SOMETHING_PERMISSION,
+        CHANGE_SOMETHING_PERMISSION
+      ]
+    };
+  }
+
+  rpc TestAuthenticatedMethodWithRolesOnly(TestMessage) returns (TestMessage) {
+    option (proto.options) = {
+      authenticated: true
+      required_roles: [ADMIN_ROLE]
+    };
+  }
+
+  rpc TestAuthenticatedMethodsWithRolesAndPermissions(TestMessage) returns (TestMessage) {
+    option (proto.options) = {
+      authenticated: true
+      required_roles: [EMPLOYEE_ROLE]
+      required_permissions: [
+        WRITE_SOMETHING_PERMISSION
+      ]
+    };
+  }
+
+  rpc TestAuthenticatedMethodNoPermissionsAndRoles(TestMessage) returns (TestMessage) {
+    option (proto.options) = {
+      authenticated: true
+    };
+  }
+
+  rpc TestNotAuthenticatedMethodExplicit(TestMessage) returns (TestMessage) {
+    option (proto.options) = {
+      authenticated: false
+    };
+  }
+
+  rpc TestNotAuthenticatedMethodNoAnnotation(TestMessage) returns (TestMessage) {
+  }
+}
+
+message TestMessage {
+  string value = 1;
+}
