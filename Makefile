@@ -12,7 +12,7 @@ lint: ##        Run linters for project using golangci-lint on this machine.
 	golangci-lint run -v
 
 lint_docker: ## Run linter in the docker.
-	docker run --rm -v $(pwd):/app -w /app --env GOTAGS=testdocker golangci/golangci-lint:v1.51.2 golangci-lint run -v
+	docker run --rm -v $(pwd):/app -w /app --env GOTAGS=testdocker golangci/golangci-lint:v1.52.2 golangci-lint run -v
 
 ci: ##          Run CI local, needs docker.
 ## --------------------------------------------------------------------------
