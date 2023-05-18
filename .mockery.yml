@@ -1,4 +1,4 @@
 inpackage: False
-testonly: True
+testonly: False
 with-expecter: True
 keeptree: False
