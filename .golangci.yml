@@ -6,15 +6,7 @@ linters:
     - ireturn
     - gofumpt
     - nosnakecase # Hates gRPC object.
-# Bottom linters from 1.46, but CI use the 1.45.2.
-    - execinquery # Not work in v1.46.
-    - exhaustruct
-    - nosprintfhostport
-    - nonamedreturns
-    - golint # deprecated
-    - tagliatelle
-    - deadcode # deprecated
-    - varcheck # deprecated
+    - exhaustivestruct
 linters-settings:
   wrapcheck:
     ignoreSigs:
@@ -68,6 +60,9 @@ linters-settings:
     go: "1.20"
     checks: ["all", "-ST1017"] # ST1017 - Yoda
   exhaustive:
+    include:
+      - '.*\.Config.*'
+  exhaustruct:
     include:
       - '.*\.Config.*'
 

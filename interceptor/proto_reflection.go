@@ -6,10 +6,10 @@ import (
 	"log"
 	"strings"
 
-	reflection "github.com/kostyaBroTutor/auth_interceptor/grpc-proto-artifact/google.golang.org/grpc/reflection/grpc_reflection_v1"
 	protobuf "google.golang.org/protobuf/proto"
 	descriptor "google.golang.org/protobuf/types/descriptorpb"
 
+	reflection "github.com/kostyaBroTutor/auth_interceptor/grpc-proto-artifact/google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"github.com/kostyaBroTutor/auth_interceptor/pkg/contexts"
 	"github.com/kostyaBroTutor/auth_interceptor/proto"
 )

@@ -90,7 +90,7 @@ func (ai *authInterceptor) AuthUnaryServiceInterceptor(
 
 	if !authTokenInfo.HasAccessToMethodWithWithAuthOptions(authenticationOptions) {
 		return nil, status.Error(codes.PermissionDenied, fmt.Sprintf(
-			"Required permissions %+v, but only granted %+v",
+			"Required permissions %s, but only granted %s",
 			authenticationOptions, authTokenInfo,
 		))
 	}

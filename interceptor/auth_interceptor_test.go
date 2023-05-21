@@ -5,7 +5,17 @@ import (
 	"compress/gzip"
 	"context"
 	"errors"
-	"github.com/golang/protobuf/descriptor" //nolint:staticcheck // #TODO: use the google.golang.org/protobuf/reflect/protoreflect
+	"io"
+	"testing"
+
+	"github.com/golang/protobuf/descriptor" //nolint:staticcheck // TODO: use the google.golang.org/protobuf/reflect/protoreflect
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+
 	reflection "github.com/kostyaBroTutor/auth_interceptor/grpc-proto-artifact/google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"github.com/kostyaBroTutor/auth_interceptor/interceptor"
 	mocks "github.com/kostyaBroTutor/auth_interceptor/interceptor/mocks"
@@ -13,17 +23,8 @@ import (
 	testing_mocks "github.com/kostyaBroTutor/auth_interceptor/interceptor/testing/mocks"
 	"github.com/kostyaBroTutor/auth_interceptor/pkg/contexts"
 	"github.com/kostyaBroTutor/auth_interceptor/proto"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
-	"io"
-	"testing"
 )
 
-//nolint:lll
 //go:generate mockery --srcpkg=github.com/kostyaBroTutor/auth_interceptor/grpc-proto-artifact/google.golang.org/grpc/reflection/grpc_reflection_v1 --name=ServerReflectionClient
 //go:generate mockery --srcpkg=github.com/kostyaBroTutor/auth_interceptor/grpc-proto-artifact/google.golang.org/grpc/reflection/grpc_reflection_v1 --name=ServerReflection_ServerReflectionInfoClient
 
@@ -37,7 +38,13 @@ const (
 
 //nolint:gochecknoglobals
 var (
-	testContext   = metadata.NewIncomingContext(context.Background(), nil)
+	testContext                  = metadata.NewIncomingContext(context.Background(), nil)
+	testContextWithTestUserToken = metadata.NewIncomingContext(
+		context.Background(),
+		metadata.Pairs(
+			string(interceptor.AuthTokenMetadataName), testUserToken,
+		),
+	)
 	testUserID    = "testUserID"
 	testRequest   = new(interface{})
 	testResponse  = new(interface{})
@@ -133,10 +140,11 @@ var _ = Describe("AuthInterceptor", func() {
 					proto.Permission_WRITE_SOMETHING_PERMISSION,
 				},
 				[]proto.Role{},
+				false,
 			)
 
 			response, err := authUnaryServiceInterceptor(
-				testContext, testRequest,
+				testContextWithTestUserToken, testRequest,
 				testAuthenticatedMethodWithPermissionsOnlyCallInfo,
 				handlerMock.GrpcUnaryHandler,
 			)
@@ -144,10 +152,11 @@ var _ = Describe("AuthInterceptor", func() {
 			Expect(response).To(BeNil())
 			verifyError(
 				err, codes.PermissionDenied,
-				"Required permissions [permission:READ_SOMETHING_PERMISSION "+
-					"permission:CHANGE_SOMETHING_PERMISSION] are not granted",
-				"granted [permission:READ_SOMETHING_PERMISSION "+
-					"permission:WRITE_SOMETHING_PERMISSION]",
+				"Required permissions authenticated:true",
+				"required_permissions:READ_SOMETHING_PERMISSION",
+				"required_permissions:CHANGE_SOMETHING_PERMISSION",
+				"granted {\"user_id\":\"testUserID\",\"roles\":[],"+
+					"\"permissions\":[\"READ_SOMETHING_PERMISSION\",\"WRITE_SOMETHING_PERMISSION\"]}",
 			)
 		})
 
@@ -159,14 +168,15 @@ var _ = Describe("AuthInterceptor", func() {
 					proto.Permission_CHANGE_SOMETHING_PERMISSION,
 				},
 				[]proto.Role{},
+				true,
 			)
 
 			response, err := authUnaryServiceInterceptor(
-				testContext, testRequest,
+				testContextWithTestUserToken, testRequest,
 				testAuthenticatedMethodWithPermissionsOnlyCallInfo,
 				handlerMock.GrpcUnaryHandler,
 			)
-			Expect(err).ShouldNot(HaveOccurred())
+			Expect(err).To(Equal(testError))
 			Expect(response).To(Equal(testResponse))
 		})
 	})
@@ -183,10 +193,11 @@ var _ = Describe("AuthInterceptor", func() {
 				authClientMock, reflectionClientMock, handlerMock,
 				[]proto.Permission{},
 				[]proto.Role{proto.Role_EMPLOYEE_ROLE},
+				false,
 			)
 
 			response, err := authUnaryServiceInterceptor(
-				testContext, testRequest,
+				testContextWithTestUserToken, testRequest,
 				testAuthenticatedMethodWithRolesOnlyCallInfo,
 				handlerMock.GrpcUnaryHandler,
 			)
@@ -194,8 +205,10 @@ var _ = Describe("AuthInterceptor", func() {
 			Expect(response).To(BeNil())
 			verifyError(
 				err, codes.PermissionDenied,
-				"Required roles [role:ADMIN_ROLE] are not granted",
-				"granted [role:EMPLOYEE_ROLE]",
+				"Required roles authenticated:true  "+
+					"required_roles:ADMIN_ROLE",
+				"granted &{UserID:testUserID Roles:[EMPLOYEE_ROLE] "+
+					"Permissions:[]",
 			)
 		})
 
@@ -204,14 +217,15 @@ var _ = Describe("AuthInterceptor", func() {
 				authClientMock, reflectionClientMock, handlerMock,
 				[]proto.Permission{},
 				[]proto.Role{proto.Role_ADMIN_ROLE},
+				true,
 			)
 
 			response, err := authUnaryServiceInterceptor(
-				testContext, testRequest,
+				testContextWithTestUserToken, testRequest,
 				testAuthenticatedMethodWithRolesOnlyCallInfo,
 				handlerMock.GrpcUnaryHandler,
 			)
-			Expect(err).ShouldNot(HaveOccurred())
+			Expect(err).To(Equal(testError))
 			Expect(response).ToNot(BeNil())
 		})
 	})
@@ -228,10 +242,11 @@ var _ = Describe("AuthInterceptor", func() {
 				authClientMock, reflectionClientMock, handlerMock,
 				[]proto.Permission{proto.Permission_READ_SOMETHING_PERMISSION},
 				[]proto.Role{proto.Role_EMPLOYEE_ROLE},
+				false,
 			)
 
 			response, err := authUnaryServiceInterceptor(
-				testContext, testRequest,
+				testContextWithTestUserToken, testRequest,
 				testAuthenticatedMethodsWithRolesAndPermissionsCallInfo,
 				handlerMock.GrpcUnaryHandler,
 			)
@@ -239,8 +254,10 @@ var _ = Describe("AuthInterceptor", func() {
 			Ω(err).Should(HaveOccurred())
 			verifyError(
 				err, codes.PermissionDenied,
-				"Required permissions [permission:WRITE_SOMETHING_PERMISSION] are not granted",
-				"granted [permission:READ_SOMETHING_PERMISSION]",
+				"Required permissions authenticated:true  "+
+					"required_permissions:WRITE_SOMETHING_PERMISSION",
+				"granted &{UserID:testUserID Roles:[EMPLOYEE_ROLE] "+
+					"Permissions:[READ_SOMETHING_PERMISSION]",
 			)
 		})
 
@@ -249,10 +266,11 @@ var _ = Describe("AuthInterceptor", func() {
 				authClientMock, reflectionClientMock, handlerMock,
 				[]proto.Permission{proto.Permission_WRITE_SOMETHING_PERMISSION},
 				[]proto.Role{proto.Role_ADMIN_ROLE},
+				false,
 			)
 
 			response, err := authUnaryServiceInterceptor(
-				testContext, testRequest,
+				testContextWithTestUserToken, testRequest,
 				testAuthenticatedMethodsWithRolesAndPermissionsCallInfo,
 				handlerMock.GrpcUnaryHandler,
 			)
@@ -260,8 +278,10 @@ var _ = Describe("AuthInterceptor", func() {
 			Ω(err).Should(HaveOccurred())
 			verifyError(
 				err, codes.PermissionDenied,
-				"Required roles [role:EMPLOYEE_ROLE] are not granted",
-				"granted [role:ADMIN_ROLE]",
+				"Required roles authenticated:true  "+
+					"required_roles:EMPLOYEE_ROLE",
+				"granted &{UserID:testUserID Roles:[ADMIN_ROLE] "+
+					"Permissions:[WRITE_SOMETHING_PERMISSION]",
 			)
 		})
 
@@ -270,14 +290,22 @@ var _ = Describe("AuthInterceptor", func() {
 				authClientMock, reflectionClientMock, handlerMock,
 				[]proto.Permission{proto.Permission_WRITE_SOMETHING_PERMISSION},
 				[]proto.Role{proto.Role_EMPLOYEE_ROLE},
+				true,
+			)
+			testContext = metadata.NewIncomingContext(
+				testContext,
+				metadata.Pairs(
+					string(interceptor.AuthTokenMetadataName),
+					testUserToken,
+				),
 			)
 
 			response, err := authUnaryServiceInterceptor(
-				testContext, testRequest,
+				testContextWithTestUserToken, testRequest,
 				testAuthenticatedMethodsWithRolesAndPermissionsCallInfo,
 				handlerMock.GrpcUnaryHandler,
 			)
-			Expect(err).To(BeNil())
+			Expect(err).To(Equal(testError))
 			Expect(response).To(Equal(testResponse))
 		})
 	})
@@ -295,7 +323,7 @@ var _ = Describe("AuthInterceptor", func() {
 			)
 
 			response, err := authUnaryServiceInterceptor(
-				testContext, testRequest,
+				testContextWithTestUserToken, testRequest,
 				testAuthenticatedMethodNoPermissionsAndRolesCallInfo,
 				handlerMock.GrpcUnaryHandler,
 			)
@@ -317,7 +345,7 @@ var _ = Describe("AuthInterceptor", func() {
 			)
 
 			response, err := authUnaryServiceInterceptor(
-				testContext, testRequest,
+				testContextWithTestUserToken, testRequest,
 				testNotAuthenticatedMethodExplicitCallInfo,
 				handlerMock.GrpcUnaryHandler,
 			)
@@ -338,16 +366,9 @@ var _ = Describe("AuthInterceptor", func() {
 			setupForAuthenticatedUserWithoutPermissionsAndRoles(
 				authClientMock, reflectionClientMock, handlerMock,
 			)
-			testContext = metadata.NewIncomingContext(
-				testContext,
-				metadata.Pairs(
-					string(interceptor.AuthTokenMetadataName),
-					testUserToken,
-				),
-			)
 
 			response, err := authUnaryServiceInterceptor(
-				testContext, testRequest,
+				testContextWithTestUserToken, testRequest,
 				testNotAuthenticatedMethodNoAnnotationCallInfo,
 				handlerMock.GrpcUnaryHandler,
 			)
@@ -384,6 +405,7 @@ var _ = Describe("AuthInterceptor", func() {
 				authClientMock, reflectionClientMock, handlerMock,
 				[]proto.Permission{proto.Permission_WRITE_SOMETHING_PERMISSION},
 				[]proto.Role{proto.Role_EMPLOYEE_ROLE},
+				true,
 			)
 
 			response, err := authUnaryServiceInterceptor(
@@ -391,7 +413,7 @@ var _ = Describe("AuthInterceptor", func() {
 				testAuthenticatedMethodsWithRolesAndPermissionsCallInfo,
 				handlerMock.GrpcUnaryHandler,
 			)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 			Expect(response).To(Equal(testResponse))
 		})
 	})
@@ -471,7 +493,7 @@ func testUserNotAuthenticated(
 	handlerMock *testing_mocks.UnaryHandler,
 	authUnaryServiceInterceptor grpc.UnaryServerInterceptor,
 ) {
-	setupForNonAuthenticatedUser(reflectionClientMock, handlerMock)
+	setupForNonAuthenticatedUser(reflectionClientMock)
 
 	response, err := authUnaryServiceInterceptor(
 		testContext, testRequest,
@@ -480,16 +502,13 @@ func testUserNotAuthenticated(
 	)
 	Expect(response).To(BeNil())
 	Ω(err).Should(HaveOccurred())
-	verifyError(err, codes.Unauthenticated, "user is not authenticated")
+	verifyError(err, codes.Unauthenticated, "verification token error")
 }
 
 func setupForNonAuthenticatedUser(
 	reflectionClientMock *mocks.ServerReflectionClient,
-	handlerMock *testing_mocks.UnaryHandler,
 ) {
 	setupReflection(testContext, reflectionClientMock)
-	handlerMock.On("GrpcUnaryHandler", testContext, testRequest).
-		Return(testResponse, testError)
 }
 
 func setupForAuthenticatedUserWithoutPermissionsAndRoles(
@@ -528,15 +547,17 @@ func setupForAuthenticatedUserWithPermissionsAndRoles(
 	handlerMock *testing_mocks.UnaryHandler,
 	permissions []proto.Permission,
 	roles []proto.Role,
+	hasAccess bool,
 ) {
 	testAuthContext := metadata.NewIncomingContext(
-		testContext,
+		context.Background(),
 		metadata.Pairs(
 			string(interceptor.AuthTokenMetadataName), testUserToken,
 		),
 	)
 	setupAuthResponse(
-		contexts.ToOutgoing(testAuthContext), authClientMock, testTokenInfo,
+		contexts.ToOutgoing(testAuthContext), authClientMock,
+		testTokenInfoWithRolesAndPermissions(roles, permissions),
 	)
 
 	handlerContext := context.WithValue(
@@ -550,8 +571,11 @@ func setupForAuthenticatedUserWithPermissionsAndRoles(
 	)
 
 	setupReflection(testAuthContext, reflectionClientMock)
-	handlerMock.On("GrpcUnaryHandler", handlerContext, testRequest).
-		Return(testResponse, testError)
+
+	if hasAccess {
+		handlerMock.On("GrpcUnaryHandler", handlerContext, testRequest).
+			Return(testResponse, testError)
+	}
 }
 
 // setupReflection service to return
@@ -574,7 +598,7 @@ func setupReflection(
 	protoStream.On(
 		"Send",
 		&reflection.ServerReflectionRequest{
-			MessageRequest: &reflection.ServerReflectionRequest_FileContainingSymbol{
+			MessageRequest: &reflection.ServerReflectionRequest_FileContainingSymbol{ //nolint:exhaustivestruct
 				FileContainingSymbol: testFullServiceName,
 			},
 		},
@@ -582,7 +606,7 @@ func setupReflection(
 	protoStream.On(
 		"Recv",
 	).Return(&reflection.ServerReflectionResponse{
-		MessageResponse: &reflection.ServerReflectionResponse_FileDescriptorResponse{
+		MessageResponse: &reflection.ServerReflectionResponse_FileDescriptorResponse{ //nolint:exhaustivestruct
 			FileDescriptorResponse: &reflection.FileDescriptorResponse{
 				FileDescriptorProto: [][]byte{fileDescriptorSerialized},
 			},
