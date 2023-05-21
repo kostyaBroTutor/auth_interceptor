@@ -7,8 +7,7 @@ import (
 
 	grpc "google.golang.org/grpc"
 
-	grpc_reflection_v1alpha "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
-
+	grpc_reflection_v1 "github.com/kostyaBroTutor/auth_interceptor/grpc-proto-artifact/google.golang.org/grpc/reflection/grpc_reflection_v1"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -26,7 +25,7 @@ func (_m *ServerReflectionClient) EXPECT() *ServerReflectionClient_Expecter {
 }
 
 // ServerReflectionInfo provides a mock function with given fields: ctx, opts
-func (_m *ServerReflectionClient) ServerReflectionInfo(ctx context.Context, opts ...grpc.CallOption) (grpc_reflection_v1alpha.ServerReflection_ServerReflectionInfoClient, error) {
+func (_m *ServerReflectionClient) ServerReflectionInfo(ctx context.Context, opts ...grpc.CallOption) (grpc_reflection_v1.ServerReflection_ServerReflectionInfoClient, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -36,16 +35,16 @@ func (_m *ServerReflectionClient) ServerReflectionInfo(ctx context.Context, opts
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 grpc_reflection_v1alpha.ServerReflection_ServerReflectionInfoClient
+	var r0 grpc_reflection_v1.ServerReflection_ServerReflectionInfoClient
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, ...grpc.CallOption) (grpc_reflection_v1alpha.ServerReflection_ServerReflectionInfoClient, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, ...grpc.CallOption) (grpc_reflection_v1.ServerReflection_ServerReflectionInfoClient, error)); ok {
 		return rf(ctx, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, ...grpc.CallOption) grpc_reflection_v1alpha.ServerReflection_ServerReflectionInfoClient); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, ...grpc.CallOption) grpc_reflection_v1.ServerReflection_ServerReflectionInfoClient); ok {
 		r0 = rf(ctx, opts...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(grpc_reflection_v1alpha.ServerReflection_ServerReflectionInfoClient)
+			r0 = ret.Get(0).(grpc_reflection_v1.ServerReflection_ServerReflectionInfoClient)
 		}
 	}
 
@@ -84,12 +83,12 @@ func (_c *ServerReflectionClient_ServerReflectionInfo_Call) Run(run func(ctx con
 	return _c
 }
 
-func (_c *ServerReflectionClient_ServerReflectionInfo_Call) Return(_a0 grpc_reflection_v1alpha.ServerReflection_ServerReflectionInfoClient, _a1 error) *ServerReflectionClient_ServerReflectionInfo_Call {
+func (_c *ServerReflectionClient_ServerReflectionInfo_Call) Return(_a0 grpc_reflection_v1.ServerReflection_ServerReflectionInfoClient, _a1 error) *ServerReflectionClient_ServerReflectionInfo_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ServerReflectionClient_ServerReflectionInfo_Call) RunAndReturn(run func(context.Context, ...grpc.CallOption) (grpc_reflection_v1alpha.ServerReflection_ServerReflectionInfoClient, error)) *ServerReflectionClient_ServerReflectionInfo_Call {
+func (_c *ServerReflectionClient_ServerReflectionInfo_Call) RunAndReturn(run func(context.Context, ...grpc.CallOption) (grpc_reflection_v1.ServerReflection_ServerReflectionInfoClient, error)) *ServerReflectionClient_ServerReflectionInfo_Call {
 	_c.Call.Return(run)
 	return _c
 }

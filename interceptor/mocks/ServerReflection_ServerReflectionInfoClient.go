@@ -5,8 +5,8 @@ package mocks
 import (
 	context "context"
 
+	grpc_reflection_v1 "github.com/kostyaBroTutor/auth_interceptor/grpc-proto-artifact/google.golang.org/grpc/reflection/grpc_reflection_v1"
 	metadata "google.golang.org/grpc/metadata"
-	grpc_reflection_v1alpha "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -162,19 +162,19 @@ func (_c *ServerReflection_ServerReflectionInfoClient_Header_Call) RunAndReturn(
 }
 
 // Recv provides a mock function with given fields:
-func (_m *ServerReflection_ServerReflectionInfoClient) Recv() (*grpc_reflection_v1alpha.ServerReflectionResponse, error) {
+func (_m *ServerReflection_ServerReflectionInfoClient) Recv() (*grpc_reflection_v1.ServerReflectionResponse, error) {
 	ret := _m.Called()
 
-	var r0 *grpc_reflection_v1alpha.ServerReflectionResponse
+	var r0 *grpc_reflection_v1.ServerReflectionResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func() (*grpc_reflection_v1alpha.ServerReflectionResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func() (*grpc_reflection_v1.ServerReflectionResponse, error)); ok {
 		return rf()
 	}
-	if rf, ok := ret.Get(0).(func() *grpc_reflection_v1alpha.ServerReflectionResponse); ok {
+	if rf, ok := ret.Get(0).(func() *grpc_reflection_v1.ServerReflectionResponse); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*grpc_reflection_v1alpha.ServerReflectionResponse)
+			r0 = ret.Get(0).(*grpc_reflection_v1.ServerReflectionResponse)
 		}
 	}
 
@@ -204,12 +204,12 @@ func (_c *ServerReflection_ServerReflectionInfoClient_Recv_Call) Run(run func())
 	return _c
 }
 
-func (_c *ServerReflection_ServerReflectionInfoClient_Recv_Call) Return(_a0 *grpc_reflection_v1alpha.ServerReflectionResponse, _a1 error) *ServerReflection_ServerReflectionInfoClient_Recv_Call {
+func (_c *ServerReflection_ServerReflectionInfoClient_Recv_Call) Return(_a0 *grpc_reflection_v1.ServerReflectionResponse, _a1 error) *ServerReflection_ServerReflectionInfoClient_Recv_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ServerReflection_ServerReflectionInfoClient_Recv_Call) RunAndReturn(run func() (*grpc_reflection_v1alpha.ServerReflectionResponse, error)) *ServerReflection_ServerReflectionInfoClient_Recv_Call {
+func (_c *ServerReflection_ServerReflectionInfoClient_Recv_Call) RunAndReturn(run func() (*grpc_reflection_v1.ServerReflectionResponse, error)) *ServerReflection_ServerReflectionInfoClient_Recv_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -257,11 +257,11 @@ func (_c *ServerReflection_ServerReflectionInfoClient_RecvMsg_Call) RunAndReturn
 }
 
 // Send provides a mock function with given fields: _a0
-func (_m *ServerReflection_ServerReflectionInfoClient) Send(_a0 *grpc_reflection_v1alpha.ServerReflectionRequest) error {
+func (_m *ServerReflection_ServerReflectionInfoClient) Send(_a0 *grpc_reflection_v1.ServerReflectionRequest) error {
 	ret := _m.Called(_a0)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*grpc_reflection_v1alpha.ServerReflectionRequest) error); ok {
+	if rf, ok := ret.Get(0).(func(*grpc_reflection_v1.ServerReflectionRequest) error); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)
@@ -276,14 +276,14 @@ type ServerReflection_ServerReflectionInfoClient_Send_Call struct {
 }
 
 // Send is a helper method to define mock.On call
-//   - _a0 *grpc_reflection_v1alpha.ServerReflectionRequest
+//   - _a0 *grpc_reflection_v1.ServerReflectionRequest
 func (_e *ServerReflection_ServerReflectionInfoClient_Expecter) Send(_a0 interface{}) *ServerReflection_ServerReflectionInfoClient_Send_Call {
 	return &ServerReflection_ServerReflectionInfoClient_Send_Call{Call: _e.mock.On("Send", _a0)}
 }
 
-func (_c *ServerReflection_ServerReflectionInfoClient_Send_Call) Run(run func(_a0 *grpc_reflection_v1alpha.ServerReflectionRequest)) *ServerReflection_ServerReflectionInfoClient_Send_Call {
+func (_c *ServerReflection_ServerReflectionInfoClient_Send_Call) Run(run func(_a0 *grpc_reflection_v1.ServerReflectionRequest)) *ServerReflection_ServerReflectionInfoClient_Send_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*grpc_reflection_v1alpha.ServerReflectionRequest))
+		run(args[0].(*grpc_reflection_v1.ServerReflectionRequest))
 	})
 	return _c
 }
@@ -293,7 +293,7 @@ func (_c *ServerReflection_ServerReflectionInfoClient_Send_Call) Return(_a0 erro
 	return _c
 }
 
-func (_c *ServerReflection_ServerReflectionInfoClient_Send_Call) RunAndReturn(run func(*grpc_reflection_v1alpha.ServerReflectionRequest) error) *ServerReflection_ServerReflectionInfoClient_Send_Call {
+func (_c *ServerReflection_ServerReflectionInfoClient_Send_Call) RunAndReturn(run func(*grpc_reflection_v1.ServerReflectionRequest) error) *ServerReflection_ServerReflectionInfoClient_Send_Call {
 	_c.Call.Return(run)
 	return _c
 }
