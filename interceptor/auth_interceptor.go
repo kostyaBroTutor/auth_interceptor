@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"sync"
 
+	reflection "github.com/kostyaBroTutor/auth_interceptor/grpc-proto-artifact/google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	reflection "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 	"google.golang.org/grpc/status"
 
 	"github.com/kostyaBroTutor/auth_interceptor/pkg/contexts"

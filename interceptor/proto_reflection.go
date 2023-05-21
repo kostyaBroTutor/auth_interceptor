@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	reflection "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
+	reflection "github.com/kostyaBroTutor/auth_interceptor/grpc-proto-artifact/google.golang.org/grpc/reflection/grpc_reflection_v1"
 	protobuf "google.golang.org/protobuf/proto"
 	descriptor "google.golang.org/protobuf/types/descriptorpb"
 
