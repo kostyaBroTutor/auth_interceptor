@@ -289,13 +289,6 @@ var _ = Describe("AuthInterceptor", func() {
 				[]proto.Role{proto.Role_EMPLOYEE_ROLE},
 				true,
 			)
-			testContext = metadata.NewIncomingContext(
-				testContext,
-				metadata.Pairs(
-					string(interceptor.AuthTokenMetadataName),
-					testUserToken,
-				),
-			)
 
 			response, err := authUnaryServiceInterceptor(
 				testContextWithTestUserToken, testRequest,
@@ -315,8 +308,9 @@ var _ = Describe("AuthInterceptor", func() {
 		})
 
 		It("should not return error if user is authenticated", func() {
-			setupForAuthenticatedUserWithoutPermissionsAndRoles(
+			setupForAuthenticatedUserWithPermissionsAndRoles(
 				authClientMock, reflectionClientMock, handlerMock,
+				[]proto.Permission{}, []proto.Role{}, true,
 			)
 
 			response, err := authUnaryServiceInterceptor(
@@ -337,9 +331,9 @@ var _ = Describe("AuthInterceptor", func() {
 		})
 
 		It("should not return error if user is authenticated", func() {
-			setupForAuthenticatedUserWithoutPermissionsAndRoles(
-				authClientMock, reflectionClientMock, handlerMock,
-			)
+			setupReflection(testContextWithTestUserToken, reflectionClientMock)
+			handlerMock.On("GrpcUnaryHandler", testContextWithTestUserToken, testRequest).
+				Return(testResponse, testError)
 
 			response, err := authUnaryServiceInterceptor(
 				testContextWithTestUserToken, testRequest,
@@ -360,9 +354,9 @@ var _ = Describe("AuthInterceptor", func() {
 		})
 
 		It("should not return error if user is authenticated", func() {
-			setupForAuthenticatedUserWithoutPermissionsAndRoles(
-				authClientMock, reflectionClientMock, handlerMock,
-			)
+			setupReflection(testContextWithTestUserToken, reflectionClientMock)
+			handlerMock.On("GrpcUnaryHandler", testContextWithTestUserToken, testRequest).
+				Return(testResponse, testError)
 
 			response, err := authUnaryServiceInterceptor(
 				testContextWithTestUserToken, testRequest,
@@ -504,36 +498,6 @@ func setupForNonAuthenticatedUser(
 	reflectionClientMock *mocks.ServerReflectionClient,
 ) {
 	setupReflection(testContext, reflectionClientMock)
-}
-
-func setupForAuthenticatedUserWithoutPermissionsAndRoles(
-	authClientMock *mocks.AuthClient,
-	reflectionClientMock *mocks.ServerReflectionClient,
-	handlerMock *testing_mocks.UnaryHandler,
-) {
-	testAuthContext := metadata.NewIncomingContext(
-		testContext,
-		metadata.Pairs(
-			string(interceptor.AuthTokenMetadataName), testUserToken,
-		),
-	)
-	setupAuthResponse(
-		contexts.ToOutgoing(testAuthContext), authClientMock, testTokenInfo,
-	)
-
-	handlerContext := context.WithValue(
-		testAuthContext, interceptor.UserIDMetadataName, testUserID,
-	)
-	handlerContext = context.WithValue(
-		handlerContext, interceptor.RolesMetadataName, []proto.Role{},
-	)
-	handlerContext = context.WithValue(
-		handlerContext, interceptor.PermissionMetadataName, []proto.Permission{},
-	)
-
-	setupReflection(testAuthContext, reflectionClientMock)
-	handlerMock.On("GrpcUnaryHandler", handlerContext, testRequest).
-		Return(testResponse, testError)
 }
 
 func setupForAuthenticatedUserWithPermissionsAndRoles(
