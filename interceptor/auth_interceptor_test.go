@@ -205,10 +205,9 @@ var _ = Describe("AuthInterceptor", func() {
 			Expect(response).To(BeNil())
 			verifyError(
 				err, codes.PermissionDenied,
-				"Required roles authenticated:true  "+
-					"required_roles:ADMIN_ROLE",
-				"granted &{UserID:testUserID Roles:[EMPLOYEE_ROLE] "+
-					"Permissions:[]",
+				"Required permissions authenticated:true",
+				"required_roles:ADMIN_ROLE",
+				"granted {\"user_id\":\"testUserID\",\"roles\":[\"EMPLOYEE_ROLE\"],\"permissions\":[]}",
 			)
 		})
 
@@ -254,10 +253,9 @@ var _ = Describe("AuthInterceptor", func() {
 			Ω(err).Should(HaveOccurred())
 			verifyError(
 				err, codes.PermissionDenied,
-				"Required permissions authenticated:true  "+
-					"required_permissions:WRITE_SOMETHING_PERMISSION",
-				"granted &{UserID:testUserID Roles:[EMPLOYEE_ROLE] "+
-					"Permissions:[READ_SOMETHING_PERMISSION]",
+				"Required permissions authenticated:true",
+				"required_permissions:WRITE_SOMETHING_PERMISSION",
+				"granted {\"user_id\":\"testUserID\",\"roles\":[\"EMPLOYEE_ROLE\"],\"permissions\":[\"READ_SOMETHING_PERMISSION\"]}",
 			)
 		})
 
@@ -278,10 +276,9 @@ var _ = Describe("AuthInterceptor", func() {
 			Ω(err).Should(HaveOccurred())
 			verifyError(
 				err, codes.PermissionDenied,
-				"Required roles authenticated:true  "+
-					"required_roles:EMPLOYEE_ROLE",
-				"granted &{UserID:testUserID Roles:[ADMIN_ROLE] "+
-					"Permissions:[WRITE_SOMETHING_PERMISSION]",
+				"Required permissions authenticated:true",
+				"required_roles:EMPLOYEE_ROLE",
+				"granted {\"user_id\":\"testUserID\",\"roles\":[\"ADMIN_ROLE\"],\"permissions\":[\"WRITE_SOMETHING_PERMISSION\"]}",
 			)
 		})
 
@@ -379,11 +376,13 @@ var _ = Describe("AuthInterceptor", func() {
 	})
 
 	Describe("cache", func() {
-		It("allow not authenticated request using cache", func() {
+		BeforeEach(func() {
 			makeCallToCreateCache(
 				authUnaryServiceInterceptor, reflectionClientMock, handlerMock,
 			)
+		})
 
+		It("allow not authenticated request using cache", func() {
 			handlerMock.On("GrpcUnaryHandler", testContext, testRequest).
 				Return(testResponse, testError)
 
@@ -397,10 +396,6 @@ var _ = Describe("AuthInterceptor", func() {
 		})
 
 		It("allow authenticated request using cache", func() {
-			makeCallToCreateCache(
-				authUnaryServiceInterceptor, reflectionClientMock, handlerMock,
-			)
-
 			setupForAuthenticatedUserWithPermissionsAndRoles(
 				authClientMock, reflectionClientMock, handlerMock,
 				[]proto.Permission{proto.Permission_WRITE_SOMETHING_PERMISSION},
@@ -409,11 +404,11 @@ var _ = Describe("AuthInterceptor", func() {
 			)
 
 			response, err := authUnaryServiceInterceptor(
-				testContext, testRequest,
+				testContextWithTestUserToken, testRequest,
 				testAuthenticatedMethodsWithRolesAndPermissionsCallInfo,
 				handlerMock.GrpcUnaryHandler,
 			)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).To(Equal(testError))
 			Expect(response).To(Equal(testResponse))
 		})
 	})
@@ -615,10 +610,12 @@ func setupReflection(
 	)
 	protoStream.On("CloseSend").Return(nil)
 
-	reflectionClientMock.On(
-		"ServerReflectionInfo",
-		contexts.ToOutgoing(ctx),
-	).Return(protoStream, nil)
+	if len(reflectionClientMock.ExpectedCalls) == 0 {
+		reflectionClientMock.On(
+			"ServerReflectionInfo",
+			contexts.ToOutgoing(ctx),
+		).Return(protoStream, nil).Once()
+	}
 }
 
 func setupAuthResponse(
