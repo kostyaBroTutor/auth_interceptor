@@ -108,9 +108,11 @@ func findServicesDefinition(
 	return new(descriptor.ServiceDescriptorProto), nil
 }
 
+// splitPackageAndServiceName splits the full service name
+// into package name and service name.
 func splitPackageAndServiceName(
 	fullServiceName string,
-) (packageName string, serviceName string) {
+) (string, string) {
 	parts := strings.Split(fullServiceName, ".")
 
 	return strings.Join(parts[:len(parts)-1], "."), parts[len(parts)-1]

@@ -3,6 +3,7 @@ package interceptor
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/kostyaBroTutor/auth_interceptor/pkg/slice"
 	"github.com/kostyaBroTutor/auth_interceptor/proto"
 )

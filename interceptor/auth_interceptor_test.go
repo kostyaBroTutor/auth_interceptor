@@ -45,29 +45,10 @@ var (
 			string(interceptor.AuthTokenMetadataName), testUserToken,
 		),
 	)
-	testUserID    = "testUserID"
-	testRequest   = new(interface{})
-	testResponse  = new(interface{})
-	testError     = errors.New(testErrorMessage) //nolint:golint,revive,errname,stylecheck
-	testTokenInfo = &interceptor.TokenInfo{
-		UserID: testUserID,
-	}
-	testTokenInfoWithPermissions = func(
-		permissions ...proto.Permission,
-	) *interceptor.TokenInfo {
-		return &interceptor.TokenInfo{
-			UserID:      testUserID,
-			Permissions: permissions,
-		}
-	}
-	testTokenInfoWithRoles = func(
-		roles ...proto.Role,
-	) *interceptor.TokenInfo {
-		return &interceptor.TokenInfo{
-			UserID: testUserID,
-			Roles:  roles,
-		}
-	}
+	testUserID                           = "testUserID"
+	testRequest                          = new(interface{})
+	testResponse                         = new(interface{})
+	testError                            = errors.New(testErrorMessage) //nolint:golint,revive,errname,stylecheck
 	testTokenInfoWithRolesAndPermissions = func(
 		roles []proto.Role, permissions []proto.Permission,
 	) *interceptor.TokenInfo {
@@ -255,7 +236,8 @@ var _ = Describe("AuthInterceptor", func() {
 				err, codes.PermissionDenied,
 				"Required permissions authenticated:true",
 				"required_permissions:WRITE_SOMETHING_PERMISSION",
-				"granted {\"user_id\":\"testUserID\",\"roles\":[\"EMPLOYEE_ROLE\"],\"permissions\":[\"READ_SOMETHING_PERMISSION\"]}",
+				"granted {\"user_id\":\"testUserID\",\"roles\":[\"EMPLOYEE_ROLE\"],"+
+					"\"permissions\":[\"READ_SOMETHING_PERMISSION\"]}",
 			)
 		})
 
