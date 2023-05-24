@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package example.proto;
+
+option go_package = "example/service/proto;exampleproto";
+
+import "proto/annotation.proto";
+
+// ExampleService is the simple service as example, how to use the auth interceptor.
+service ExampleService {
+  rpc FreeMethod(TestMessage) returns (TestMessage) {
+    option (.proto.options) = {
+      authenticated: false
+    };
+  }
+
+  rpc LimitAccessMethod(TestMessage) returns (TestMessage) {
+    option (.proto.options) = {
+      authenticated: true
+      required_roles: [ADMIN_ROLE]
+      required_permissions: [
+        READ_SOMETHING_PERMISSION,
+        WRITE_SOMETHING_PERMISSION,
+        CHANGE_SOMETHING_PERMISSION
+      ]
+    };
+  }
+}
+
+message TestMessage {}
