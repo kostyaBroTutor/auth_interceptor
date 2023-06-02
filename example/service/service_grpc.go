@@ -72,7 +72,7 @@ func NewExampleGrpcServer(config Config) (func(), error) {
 
 	exampleServiceClientConnNew, err := grpc.Dial(
 		config.ListenAddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()), // #TODO: use TLS.
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
